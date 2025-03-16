@@ -13,8 +13,8 @@ class Accumulator {
             void add(Points);
 
         // Receive from topics
-            void receive_lidar(const PointCloud_msg&);
-            void receive_imu(const IMU_msg&);
+            void receive_lidar(const PointCloud_msg);
+            void receive_state(const State_msg);
         
         // Empty buffers
             void clear_buffers();
@@ -80,6 +80,7 @@ class Accumulator {
             if (t > source.content.front().time) return source.content.front();
             
             int k_t = std::max(0, before_t(source, t));
+            if (k_t == 0) return source.content[k_t];
 
             // Get rightest content left to t (sorted new to old)
             for (int k = k_t; k < source.content.size(); ++k) {
