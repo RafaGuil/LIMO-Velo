@@ -26,7 +26,19 @@ extern struct Params Config;
             if (not this->exists()) this->build_tree(points);
             else this->add_points(points, downsample);
 
+            buffer_mapped_points_.insert(buffer_mapped_points_.end(), points.begin(), points.end());
+
             this->last_map_time = time;
+        }
+
+        Points Mapper::get() {
+            return buffer_mapped_points_;
+        }
+
+        void Mapper::pop(int n) {
+            while (buffer_mapped_points_.size() > n) {
+                buffer_mapped_points_.pop_front();
+            }
         }
 
         int Mapper::size() {

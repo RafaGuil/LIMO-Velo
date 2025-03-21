@@ -11,6 +11,7 @@ class Mapper {
 
     private:
         KD_TREE<Point>::Ptr map;
+        Points buffer_mapped_points_;
 
     public:
         Mapper();
@@ -21,6 +22,8 @@ class Mapper {
         void add(const State&, Points&, bool downsample=false);        
         Matches match(const State&, const Points&);
         bool hasToMap(double t);
+        Points get();
+        void pop(int n);
 
     private:
         void init_tree();

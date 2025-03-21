@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
     // Objects
     Publishers publish(node);
     Accumulator& accum = Accumulator::getInstance();
+    Accumulator& buffer = Accumulator::getInstance();
     Compensator comp = Compensator ();
     Mapper& map = Mapper::getInstance();
     Localizator& loc = Localizator::getInstance();
@@ -87,8 +88,8 @@ int main(int argc, char** argv) {
                 loc.propagate_to(t2);
 
                 // Compensated pointcloud given a path
-                Points compensated = comp.compensate(t1, t2);
-                Points ds_compensated = comp.downsample(compensated);
+                Points points = accum.get_points(t1, t2);
+                Points ds_compensated = comp.downsample(points);
                 if (ds_compensated.size() < Config.MAX_POINTS2MATCH) {
                     if (Config.print_debug) RCLCPP_WARN(rclcpp::get_logger("limovelo"), "ds_compensated.size(): %d, Config.MAX_POINTS2MATCH: %d", ds_compensated.size(), Config.MAX_POINTS2MATCH);
                     if (Config.print_debug) RCLCPP_WARN(rclcpp::get_logger("limovelo"), "Not enough points to match");
@@ -96,14 +97,14 @@ int main(int argc, char** argv) {
                 }
 
                 // Localize points in map
-                loc.correct(ds_compensated, t2);
+                loc.correct(points, t2);
                 State Xt2 = loc.latest_state();
                 accum.add(Xt2, t2);
-                publish.state(Xt2, false);
-                publish.tf(Xt2);
+                // publish.state(Xt2, false);
+                // publish.tf(Xt2);
 
                 // Publish pointcloud used to localize
-                Points global_compensated = Xt2 * Xt2.I_Rt_L() * compensated;
+                Points global_compensated = Xt2 * Xt2.I_Rt_L() * points;
                 Points global_ds_compensated = Xt2 * Xt2.I_Rt_L() * ds_compensated;
                 // publish.pointcloud(global_ds_compensated, true);
 
@@ -112,33 +113,24 @@ int main(int argc, char** argv) {
 
             // Step 2. MAPPING
 
-                // Update map and add points to buffer
                 if (Config.mapping) {
-                    map.add(global_ds_compensated, t2, true);
-                    buffer_mapped_points_.insert(
-                        buffer_mapped_points_.end(),   // Position
-                        global_compensated.begin(), // First
-                        global_compensated.end()    // Last
-                    );
-                    // Publish historical pointcloud
-                    publish.pointcloud(buffer_mapped_points_, false);
-                    if (Config.print_debug) RCLCPP_INFO(rclcpp::get_logger("limovelo"), "\033[1;32mHistoric pcl published, size:\033[0m %d", buffer_mapped_points_.size());
+                    map.add(global_ds_compensated, t2, false);
+                    
+                    Points full_map_points = map.get();
+                    publish.pointcloud(full_map_points, false);
+                    if (Config.print_debug) 
+                        RCLCPP_INFO(rclcpp::get_logger("limovelo"), "Full map published, size: %d", full_map_points.size());
                 }
                 else {
                     map.add(global_ds_compensated, t2, true);
-                    if (Config.high_quality_publish) publish.pointcloud(global_compensated, false);                    
-                    else publish.pointcloud(global_ds_compensated, false);                    
+                    publish.pointcloud(global_ds_compensated, false);                    
                 }
 
             // Step 3. ERASE OLD DATA
 
-                // Empty too old LiDAR points from the accumulator
-                accum.clear_lidar(t2 - Config.time_without_clear_BUFFER_L);
-
-                // Remove oldest points from buffer_mapped_points_
-                while (!buffer_mapped_points_.empty() && buffer_mapped_points_.front().time < t2 - Config.time_without_clear_buffer_mapped_points) {
-                    buffer_mapped_points_.pop_front();
-                }
+                // Remove clearing of old LiDAR points to accumulate the buffer
+                accum.clear_buffers(t2 - Config.time_without_clear_BUFFER_L);
+                map.pop(500000);
 
             // Trick to call break in the middle of the program
             break;

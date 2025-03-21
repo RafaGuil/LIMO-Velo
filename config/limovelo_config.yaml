@@ -3,7 +3,7 @@
   ros__parameters:
     mapping: true     # set to 'true' until mapping offline fixed (see Discussions in GitHub)
     real_time: true         # in a slow CPU, real_time ensures to always output to latest odometry (possibly skipping points)
-    print_debug: false
+    print_debug: true
 
     # Topics
     points_topic: "/rslidar_points"
@@ -37,8 +37,8 @@
     LiDAR_noise: 0.001
     full_rotation_time: 0.1
     min_dist: 1.0              # Minimum distance: doesn't use points closer than this radius
-    downsample_rate: 4         # Downsampling rate: results show that this one can be up to 32 and still work, try it if you need a speedup
-    downsample_prec: 0.5       # Downsampling precision: Indoors, lower values (~0.2) work better. Outdoors, higher values (~0.5) lead to less degeneracy.
+    downsample_rate: 2         # Downsampling rate: results show that this one can be up to 32 and still work, try it if you need a speedup
+    downsample_prec: 0.1       # Downsampling precision: Indoors, lower values (~0.2) work better. Outdoors, higher values (~0.5) lead to less degeneracy.
 
     # IMU
     imu_rate: 100.0            # Approximated IMU rate: only used to estimate when to start the algorithm
