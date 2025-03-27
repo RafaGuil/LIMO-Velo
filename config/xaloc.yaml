@@ -5,8 +5,8 @@
     print_debug: true
 
     # Topics
-    points_topic: "/rslidar_points"
-    imus_topic: "/car_state/state"
+    points_topic: "/velodyne_points"
+    imus_topic: "/vectornav/IMU"
 
     # Publishers
     high_quality_publish: true   # true: Publishes the map without downsampling, can be slower. false: Publishes the downsampled map.  
@@ -19,23 +19,23 @@
     I_Translation_L: [1.25, 0.0, 0.0]
     I_Rotation_L: [
         1.0,  0.0,  0.0,
-        0.0, 1.0,  0.0,
-        0.0,  0.0, 1.0
+        0.0, -1.0,  0.0,
+        0.0,  0.0, -1.0
     ]
 
     # Delays
     time_without_clear_BUFFER_L: 0.1                  # Should be at least [FULL_ROTATION_TIME]
-    time_without_clear_buffer_mapped_points: 10.0     # Should be at least [FULL_ROTATION_TIME]
+    time_without_clear_buffer_mapped_points: 0.1     # Should be at least [FULL_ROTATION_TIME]
     real_time_delay: 0.1                              # Should be at least [FULL_ROTATION_TIME] (without a modificated LiDAR driver)
 
     # LiDAR
-    LiDAR_type: rslidar           # Options: velodyne, hesai, ouster, rslidar
+    LiDAR_type: velodyne           # Options: velodyne, hesai, ouster, rslidar
     pub_full_pcl: true          # Publish the full pointcloud (true) or only the points used for the odometry (false)
     stamp_beginning: false      # (Usually: false) Is the pointcloud's stamp the last point's timestamp (end of rotation) or the first's (beggining of rotation)?
-    offset_beginning: false     # (Usual values: Velodyne = false, Ouster = true, HESAI = indiferent) Is the offset with respect the beginning of the rotation (i.e. point.time ~ [0, 0.1]) or with respect the end (i.e. point.time ~ [-0.1, 0])? For more information see Issue #14: https://github.com/Huguet57/LIMO-Velo/issues/14
+    offset_beginning: true     # (Usual values: Velodyne = false, Ouster = true, HESAI = indiferent) Is the offset with respect the beginning of the rotation (i.e. point.time ~ [0, 0.1]) or with respect the end (i.e. point.time ~ [-0.1, 0])? For more information see Issue #14: https://github.com/Huguet57/LIMO-Velo/issues/14
     LiDAR_noise: 0.001
     full_rotation_time: 0.1
-    min_dist: 0.5              # Minimum distance: doesn't use points closer than this radius
+    min_dist: 1.0              # Minimum distance: doesn't use points closer than this radius
 
     # Mapping
     mapping: true     # set to 'true' until mapping offline fixed (see Discussions in GitHub)
@@ -43,29 +43,22 @@
     downsample_prec: 0.5       # Downsampling precision: Indoors, lower values (~0.2) work better. Outdoors, higher values (~0.5) lead to less degeneracy.
     map_size: 1000000           # Maximum number of points in the map 
 
-    # KD-Tree
-    Config.delete_KDTREE_points_param: 1.0    # Al subirlo, se vuelve más estricta la eliminación de puntos obsoletos (se marcan más fácilmente para borrado).
-    Config.balance_param: 0.1                 # Al subirlo, el árbol tolera más desequilibrio antes de reconstruirse (menos recálculos).
-    Config.box_length_param: 0.1              # Al subirlo, aumenta el tamaño mínimo para agrupar/filtrar puntos (más agresivo al agrupar).
-
-
     # IMU
-    imu_rate: 100.0            # Approximated IMU rate: only used to estimate when to start the algorithm
-    covariance_acceleration: 1.e-2
-    covariance_gyroscope: 1.e-4
-    covariance_bias_acceleration: 1.e-4
-    covariance_bias_gyroscope: 1.e-5
+    imu_rate: 400.0
+    covariance_gyroscope: 6.01e-4
+    covariance_acceleration: 1.53e-2
+    covariance_bias_gyroscope: 1.54e-5
+    covariance_bias_acceleration: 3.38e-4
 
     # Localizator
     MAX_NUM_ITERS: 3
     # LIMITS: [0.001] * 23
     NUM_MATCH_POINTS: 5
     MAX_DIST_PLANE: 2.0
-    PLANES_THRESHOLD: 2.e-1
+    PLANES_THRESHOLD: 1.e-1
     # Localizator - Degeneracy
     degeneracy_threshold: 5.           # Its magnitude depends on delta (see below), keeping it too high can cause blurry results
     print_degeneracy_values: false     # Print the degeneracy eigenvalues to guess what the threshold must be for you
-    MAX_POINTS2MATCH: 10
 
     # Delta refinement
     # Choose a set of times and field of view sizes (deltas) for the initialization.
@@ -74,8 +67,8 @@
     Initialization:
         # No initialization
         #times: []
-        deltas: [0.1]
+        # deltas: [0.1]
 
         # # With initialization
-        # times: [2.0]
-        # deltas: [0.1, 0.025]
+        times: [1.0, 1.25]
+        deltas: [0.1, 0.05, 0.02]

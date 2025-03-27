@@ -47,6 +47,12 @@ int main(int argc, char** argv) {
         std::bind(&Accumulator::receive_state, &accum, std::placeholders::_1)
     );
 
+    // rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub = 
+    //     node->create_subscription<sensor_msgs::msg::Imu>(
+    //     Config.imus_topic, 1,
+    //     std::bind(&Accumulator::receive_imu, &accum, std::placeholders::_1)
+    // );
+
     // Time variables
     double t1, t2;
     t2 = DBL_MAX;
@@ -99,6 +105,7 @@ int main(int argc, char** argv) {
                 // Localize points in map
                 loc.correct(points, t2);
                 State Xt2 = loc.latest_state();
+                RCLCPP_INFO(rclcpp::get_logger("limovelo"), "Xt2: %f %f %f", Xt2.pos[0], Xt2.pos[1], Xt2.pos[2]);
                 accum.add(Xt2, t2);
                 // publish.state(Xt2, false);
                 // publish.tf(Xt2);
@@ -114,7 +121,8 @@ int main(int argc, char** argv) {
             // Step 2. MAPPING
 
                 if (Config.mapping) {
-                    map.add(global_ds_compensated, t2, false);
+                    if (Config.high_quality_publish) map.add(global_compensated, t2, false);
+                    else map.add(global_ds_compensated, t2, false);
                     
                     Points full_map_points = map.get();
                     publish.pointcloud(full_map_points, false);
@@ -123,14 +131,15 @@ int main(int argc, char** argv) {
                 }
                 else {
                     map.add(global_ds_compensated, t2, true);
-                    publish.pointcloud(global_ds_compensated, false);                    
+                    if (Config.high_quality_publish) publish.pointcloud(global_compensated, false);                    
+                    else publish.pointcloud(global_ds_compensated, false);   
                 }
-
+                
             // Step 3. ERASE OLD DATA
 
                 // Remove clearing of old LiDAR points to accumulate the buffer
                 accum.clear_buffers(t2 - Config.time_without_clear_BUFFER_L);
-                map.pop(500000);
+                map.pop(Config.map_size); // TODO: downsample map instead of pop
 
             // Trick to call break in the middle of the program
             break;
@@ -165,6 +174,18 @@ void fill_config(rclcpp::Node::SharedPtr node) {
     
     node->declare_parameter("downsample_prec", 0.2);
     node->get_parameter("downsample_prec", Config.downsample_prec);
+
+    node->declare_parameter("map_size", 100000);
+    node->get_parameter("map_size", Config.map_size);
+
+    node->declare_parameter("delete_KDTREE_points_param", 0.5);
+    node->get_parameter("delete_KDTREE_points_param", Config.delete_KDTREE_points_param);
+
+    node->declare_parameter("balance_param", 0.5);
+    node->get_parameter("balance_param", Config.balance_param);
+
+    node->declare_parameter("box_length_param", 1.0);
+    node->get_parameter("box_length_param", Config.box_length_param);
     
     node->declare_parameter("high_quality_publish", false);
     node->get_parameter("high_quality_publish", Config.high_quality_publish);

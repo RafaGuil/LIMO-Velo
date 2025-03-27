@@ -6,6 +6,8 @@ class Accumulator {
 
         double initial_time;
 
+        double x_;
+
         // Add to buffer
             void add(State, double time=-1);
             void add(IMU, double time=-1);
@@ -14,6 +16,7 @@ class Accumulator {
 
         // Receive from topics
             void receive_lidar(const PointCloud_msg);
+            void receive_imu(const IMU_msg);
             void receive_state(const State_msg);
         
         // Empty buffers

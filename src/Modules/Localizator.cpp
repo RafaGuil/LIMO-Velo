@@ -20,6 +20,7 @@ extern struct Params Config;
         }
 
         // Given points, find new position
+        // SIRVO
         void Localizator::correct(const Points& points, double time) {
             if (not Mapper::getInstance().exists()) return;
             this->IKFoM_update(points);
@@ -126,6 +127,7 @@ extern struct Params Config;
             this->initialized = true;
         }
 
+        // SIRVO
         void Localizator::IKFoM_update(const Points& points) {
             double solve_H_time = 0;
             this->points2match = points;            
@@ -177,4 +179,3 @@ extern struct Params Config;
             current_state.rot = imu.q.cast<double>();
             this->IKFoM_KF.change_x(current_state);
         }
-        

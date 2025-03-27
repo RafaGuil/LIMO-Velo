@@ -41,6 +41,35 @@ extern struct Params Config;
             }
         }
 
+
+        // void Mapper::add(Points& points, double time, bool downsample) {
+        //     if (points.empty()) return;
+
+        //     // If map doesn't exist, build it.
+        //     if (not this->exists()) this->build_tree(points);
+        //     else this->add_points(points, downsample);
+
+        //     this->last_map_time = time;
+        // }
+
+        // Points Mapper::get() {
+        //     for (Point p : this->map->getRootNodePoints()) buffer_mapped_points_.push_back(p);
+        //     return buffer_mapped_points_;
+        // }
+
+        // void Mapper::pop(int n) {
+        //     std::sort(buffer_mapped_points_.begin(), buffer_mapped_points_.end(),
+        //         [](const Point& a, const Point& b){
+        //             return a.time < b.time;
+        //         }
+        //     );
+        //     PointVector to_delete; 
+        //     int rest_points = buffer_mapped_points_.size() - n;
+        //     for (int i = 0; i < rest_points; ++i) to_delete.push_back(buffer_mapped_points_[i]);
+        //     this->map->Delete_Points(to_delete);
+        // }
+
+
         int Mapper::size() {
             return this->map->size(); 
         }
@@ -74,7 +103,7 @@ extern struct Params Config;
 
     // private:
         void Mapper::init_tree() {  // TODO: (const KDTREE_OPTIONS& options) {
-            this->map = KD_TREE<Point>::Ptr (new KD_TREE<Point>(0.3, 0.6, 0.2));
+            this->map = KD_TREE<Point>::Ptr (new KD_TREE<Point>(Config.delete_KDTREE_points_param, Config.balance_param, Config.box_length_param));
         }
 
         void Mapper::build_tree(Points& points) {

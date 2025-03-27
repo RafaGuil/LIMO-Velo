@@ -70,6 +70,7 @@ struct Params {
 
     int downsample_rate;
     float downsample_prec;
+    int map_size;
     bool high_quality_publish;
 
     double min_dist;
@@ -89,6 +90,10 @@ struct Params {
     double MAX_DIST_PLANE;
     float PLANES_THRESHOLD;
     float PLANES_CHOOSE_CONSTANT;
+
+    double delete_KDTREE_points_param;
+    double balance_param;
+    double box_length_param;
 
     double wx_MULTIPLIER;
     double wy_MULTIPLIER;
@@ -243,6 +248,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(custom::Point,
 
 typedef sensor_msgs::msg::PointCloud2::SharedPtr PointCloud_msg;
 typedef common_msgs::msg::State State_msg;
+typedef sensor_msgs::msg::Imu IMU_msg;
 typedef double TimeType;
 
 class Point;
