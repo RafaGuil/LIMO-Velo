@@ -52,6 +52,8 @@ extern struct Params Config;
                 auto imu_msg = sensor_msgs::msg::Imu();
 
                 x_ = msg.x;
+                y_ = msg.y;
+                r_ = msg.r;
 
                 imu_msg.header.stamp = msg.header.stamp;
                 imu_msg.linear_acceleration.x = msg.ax;
@@ -62,12 +64,12 @@ extern struct Params Config;
                 this->add(imu_msg);
             }
 
-            // void Accumulator::receive_imu(const IMU_msg msg) {
-            //     // Turn message to IMU object
-            //     IMU imu(msg);
-            //     // Add it to the IMU buffer
-            //     this->add(imu);
-            // }
+            void Accumulator::receive_imu(const IMU_msg msg) {
+                // Turn message to IMU object
+                IMU imu(msg);
+                // Add it to the IMU buffer
+                this->add(imu);
+            }
 
         // Empty buffers
             void Accumulator::clear_buffers() {

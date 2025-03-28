@@ -22,5 +22,5 @@ extern struct Params Config;
         }
 
         bool Match::is_chosen() {
-            return this->plane.is_plane;
+            return this->plane.is_plane; // is_plane se define en el Plane.cpp
         }

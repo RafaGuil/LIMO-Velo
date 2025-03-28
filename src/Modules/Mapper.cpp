@@ -78,19 +78,20 @@ extern struct Params Config;
             return this->exists_tree();
         }
 
-        Matches Mapper::match(const State& X, const Points& points) {            
-            Matches matches;
-            if (not this->exists()) return matches;
-            matches.reserve(points.size());
+        // La funcion es llamada en el IKFoM
+        Matches Mapper::match(const State& X, const Points& points) {
+            Matches matches; // Vector de matches
+            if (not this->exists()) return matches; // Si no se inicializa el mapa, no se puede hacer nada
+            matches.reserve(points.size()); // Se va reservando el espacio para los matches
             
-            omp_set_num_threads(MP_PROC_NUM);
+            omp_set_num_threads(MP_PROC_NUM); // para paralelizar el bucle
             #pragma omp parallel for
             for (int pi = 0; pi < points.size(); ++pi) {
                 Point p = points[pi];
 
                 // Direct approach: we match the point with a plane on the map
-                Match match = this->match_plane(X * X.I_Rt_L() * p);
-                if (match.is_chosen()) matches.push_back(match);
+                Match match = this->match_plane(X * X.I_Rt_L() * p); // Traslada el punto y le hace match con un plano
+                if (match.is_chosen()) matches.push_back(match); // is_chosen cuando is_plane = true (mirar en Plane.cpp)
             }
 
             return matches;
@@ -121,11 +122,15 @@ extern struct Params Config;
         }
 
         Match Mapper::match_plane(const Point& p) {
-            // Find k nearest points
+            // 1) Declara un contenedor donde se guardarán los puntos vecinos
             PointVector near_points;
+        
+            // 2) Crea un vector para almacenar las distancias cuadráticas que tiene un tamaño = NUM_MATCH_POINTS
             vector<float> pointSearchSqDis(Config.NUM_MATCH_POINTS);
+        
+            // 3) Busca los k puntos más cercanos al punto p en el mapa, y almacena sus coordenadas y distancias
             this->map->Nearest_Search(p, Config.NUM_MATCH_POINTS, near_points, pointSearchSqDis);
-
-            // Construct a plane fitting between them
-            return Match(p, Plane (near_points, pointSearchSqDis));
+        
+            // 4) Construye un objeto Plane con esos puntos vecinos y sus distancias, y crea un Match con p y ese plano
+            return Match(p, Plane(near_points, pointSearchSqDis));
         }

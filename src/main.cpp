@@ -105,10 +105,22 @@ int main(int argc, char** argv) {
                 // Localize points in map
                 loc.correct(points, t2);
                 State Xt2 = loc.latest_state();
-                RCLCPP_INFO(rclcpp::get_logger("limovelo"), "Xt2: %f %f %f", Xt2.pos[0], Xt2.pos[1], Xt2.pos[2]);
+                double x_gs = accum.x_;
+                double y_gs = accum.y_;
+                double r_gs = accum.r_;
+                RCLCPP_INFO(rclcpp::get_logger("limovelo"), "Limovelo loc: x: %f y: %f z: %f", Xt2.pos(0), Xt2.pos(1), Xt2.pos(2));
+                RCLCPP_INFO(rclcpp::get_logger("limovelo"), "Graph Slam loc: x: %f y: %f z: 0.00", x_gs, y_gs);
+                RCLCPP_INFO(rclcpp::get_logger("limovelo"), "Difference: x: %f y: %f", Xt2.pos(0) - x_gs, Xt2.pos(1) - y_gs);
                 accum.add(Xt2, t2);
-                // publish.state(Xt2, false);
-                // publish.tf(Xt2);
+                
+                publish.state(Xt2, false);
+                publish.tf(Xt2);
+                
+                State gs;
+                gs.pos(0) = x_gs;
+                gs.pos(1) = y_gs;
+                publish.state(gs, false);
+                publish.tf(gs);
 
                 // Publish pointcloud used to localize
                 Points global_compensated = Xt2 * Xt2.I_Rt_L() * points;
@@ -139,7 +151,7 @@ int main(int argc, char** argv) {
 
                 // Remove clearing of old LiDAR points to accumulate the buffer
                 accum.clear_buffers(t2 - Config.time_without_clear_BUFFER_L);
-                map.pop(Config.map_size); // TODO: downsample map instead of pop
+                map.pop(Config.map_size);
 
             // Trick to call break in the middle of the program
             break;
@@ -178,13 +190,13 @@ void fill_config(rclcpp::Node::SharedPtr node) {
     node->declare_parameter("map_size", 100000);
     node->get_parameter("map_size", Config.map_size);
 
-    node->declare_parameter("delete_KDTREE_points_param", 0.5);
+    node->declare_parameter("delete_KDTREE_points_param", 0.3);
     node->get_parameter("delete_KDTREE_points_param", Config.delete_KDTREE_points_param);
 
-    node->declare_parameter("balance_param", 0.5);
+    node->declare_parameter("balance_param", 0.6);
     node->get_parameter("balance_param", Config.balance_param);
 
-    node->declare_parameter("box_length_param", 1.0);
+    node->declare_parameter("box_length_param", 0.2);
     node->get_parameter("box_length_param", Config.box_length_param);
     
     node->declare_parameter("high_quality_publish", false);

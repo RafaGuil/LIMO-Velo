@@ -2,7 +2,7 @@
 /limovelo:
   ros__parameters:
     real_time: true         # in a slow CPU, real_time ensures to always output to latest odometry (possibly skipping points)
-    print_debug: true
+    print_debug: false
 
     # Topics
     points_topic: "/rslidar_points"
@@ -39,14 +39,14 @@
 
     # Mapping
     mapping: true     # set to 'true' until mapping offline fixed (see Discussions in GitHub)
-    downsample_rate: 20         # Downsampling rate: results show that this one can be up to 32 and still work, try it if you need a speedup
-    downsample_prec: 0.5       # Downsampling precision: Indoors, lower values (~0.2) work better. Outdoors, higher values (~0.5) lead to less degeneracy.
-    map_size: 1000000           # Maximum number of points in the map 
+    downsample_rate: 4         # Downsampling rate: results show that this one can be up to 32 and still work, try it if you need a speedup
+    downsample_prec: 0.01       # Downsampling precision: Indoors, lower values (~0.2) work better. Outdoors, higher values (~0.5) lead to less degeneracy.
+    map_size: 100000           # Maximum number of points in the map 
 
     # KD-Tree
-    Config.delete_KDTREE_points_param: 1.0    # Al subirlo, se vuelve más estricta la eliminación de puntos obsoletos (se marcan más fácilmente para borrado).
-    Config.balance_param: 0.1                 # Al subirlo, el árbol tolera más desequilibrio antes de reconstruirse (menos recálculos).
-    Config.box_length_param: 0.1              # Al subirlo, aumenta el tamaño mínimo para agrupar/filtrar puntos (más agresivo al agrupar).
+    Config.delete_KDTREE_points_param: 10.0    # Al subirlo, se vuelve más estricta la eliminación de puntos obsoletos (se marcan más fácilmente para borrado).
+    Config.balance_param: 0.01                 # Al subirlo, el árbol tolera más desequilibrio antes de reconstruirse (menos recálculos).
+    Config.box_length_param: 0.01              # Al subirlo, aumenta el tamaño mínimo para agrupar/filtrar puntos (más agresivo al agrupar).
 
 
     # IMU
@@ -74,7 +74,7 @@
     Initialization:
         # No initialization
         #times: []
-        deltas: [0.1]
+        deltas: [0.09]
 
         # # With initialization
         # times: [2.0]

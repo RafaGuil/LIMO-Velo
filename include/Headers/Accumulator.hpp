@@ -7,6 +7,8 @@ class Accumulator {
         double initial_time;
 
         double x_;
+        double y_;
+        double r_;
 
         // Add to buffer
             void add(State, double time=-1);
